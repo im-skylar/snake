@@ -1,4 +1,5 @@
 mod game;
+mod utils;
 
 use crossterm::{self, cursor, terminal, ExecutableCommand};
 use std::thread::sleep;

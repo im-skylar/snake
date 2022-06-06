@@ -1,9 +1,10 @@
 mod apple;
 mod snake;
 
-use crossterm::{self, event, terminal, QueueableCommand};
+use crossterm::{self, event};
 use std::io;
-use std::io::Write;
+
+use crate::utils::{q_clear, q_draw_at, q_flush};
 
 pub struct Game {
     snake: snake::Snake,
@@ -29,10 +30,10 @@ impl Game {
                         ..
                     } => match c {
                         'q' => std::process::exit(0),
-                        'w' => self.snake.dir = (0, -1),
-                        's' => self.snake.dir = (0, 1),
-                        'a' => self.snake.dir = (-1, 0),
-                        'd' => self.snake.dir = (1, 0),
+                        'w' => self.snake.update_dir((0, -1)),
+                        's' => self.snake.update_dir((0, 1)),
+                        'a' => self.snake.update_dir((-1, 0)),
+                        'd' => self.snake.update_dir((1, 0)),
                         _ => (),
                     },
                     _ => println!("dada"),
@@ -43,17 +44,51 @@ impl Game {
 
     pub fn tick(&mut self) {
         self.snake.update_pos(self.size);
+        
+        let head = *self.snake.pos.last().unwrap();
+        
+        // Check whether snake is in itself
+        if self.snake.pos[..self.snake.pos.len()-2].contains(&head) {
+            self.loose();
+        }
+
+        // Check whether snake is on apple
+        if head == self.apple.pos {
+            self.apple = apple::Apple::new(&self.snake.pos, self.size);
+        } else {
+            self.snake.rm_tail();
+        }
     }
 
     pub fn draw(&mut self) -> io::Result<()> {
-        let mut stdout = std::io::stdout();
-        stdout.queue(terminal::Clear(terminal::ClearType::All))?;
+        q_clear()?;
+
+        for x in 0..self.size.0*2+1 {
+            q_draw_at(x, 0, '+')?;
+            q_draw_at(x, self.size.1+1, '+')?;
+        }
+
+        for y in 0..self.size.1+2 {
+            q_draw_at(0, y, '+')?;
+            q_draw_at(self.size.0*2, y, '+')?;
+        }
 
         self.snake.draw()?;
         self.apple.draw()?;
 
-        stdout.flush()?;
+        q_flush()?;
 
         Ok(())
+    }
+
+    pub fn loose(&self) {
+        q_clear().unwrap();
+        q_draw_at(0, 0, ' ').unwrap();
+
+        println!("You lost :(");
+        q_draw_at(0, 1, ' ').unwrap();
+        println!("Points: {}", self.snake.pos.len());
+
+        std::process::exit(0);
     }
 }
