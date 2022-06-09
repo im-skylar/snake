@@ -1,5 +1,6 @@
 use crate::utils::q_draw_at;
 use std::io;
+use crossterm::style::{Stylize, Color};
 
 pub struct Snake {
     /// Positions of body parts as x y
@@ -16,8 +17,28 @@ impl Snake {
     }
 
     pub fn draw(&self) -> io::Result<()> {
+        let mut last_x: i16 = -2; // Any number < -1 works
+
         for (x, y) in &self.pos {
-            q_draw_at(*x*2+1, *y+1, '#')?;
+            q_draw_at(
+                *x * 2 + 1,
+                *y + 1,
+                '#'.on(Color::Green)
+            )?;
+            
+            // This part is used to fill the gaps when the snake is 
+            // moving horizontally
+            let diff_x = last_x - *x as i16;
+            
+            if diff_x.abs() == 1 {
+                q_draw_at(
+                    *x * 2 + (1 + diff_x) as u16, // This is safe, because diff_x is never < -1 in this if block
+                    *y + 1,
+                    '#'.on(Color::Green)
+                )?;
+            }
+            
+            last_x = *x as i16;
         }
 
         Ok(())
