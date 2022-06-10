@@ -1,7 +1,7 @@
-use rand::Rng;
 use crate::utils::q_draw_at;
+use crossterm::style::{Color, Stylize};
+use rand::Rng;
 use std::io;
-use crossterm::style::{Stylize, Color};
 
 #[derive(Debug)]
 pub struct Apple {
@@ -21,7 +21,7 @@ impl Apple {
     }
 
     pub fn draw(&self) -> io::Result<()> {
-        q_draw_at(self.pos.0*2+1, self.pos.1+1, 'a'.with(Color::Red))?;
+        q_draw_at(self.pos.0 * 2 + 1, self.pos.1 + 1, 'a'.with(Color::Red))?;
         Ok(())
     }
 }
