@@ -124,3 +124,53 @@ impl Game {
         std::process::exit(0);
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use crate::game::*;
+
+    #[test]
+    fn wrap_around() {
+        let mut g = Game::new((10, 10));
+        g.wrap_around = true;
+        g.apple.pos = (0, 0);
+        g.snake.pos = vec![(9, 5)];
+        g.tick();
+        assert_eq!(g.snake.pos[0], (0, 5));
+
+        let mut g = Game::new((10, 10));
+        g.wrap_around = true;
+        g.apple.pos = (0, 0);
+        g.snake.pos = vec![(0, 5)];
+        g.snake.dir = (-1, 0);
+        g.tick();
+        assert_eq!(g.snake.pos[0], (9, 5));
+
+        let mut g = Game::new((10, 10));
+        g.wrap_around = true;
+        g.apple.pos = (0, 0);
+        g.snake.pos = vec![(3, 9)];
+        g.snake.dir = (0, 1);
+        g.tick();
+        assert_eq!(g.snake.pos[0], (3, 0));
+
+        let mut g = Game::new((10, 10));
+        g.wrap_around = true;
+        g.apple.pos = (0, 0);
+        g.snake.pos = vec![(3, 0)];
+        g.snake.dir = (0, -1);
+        g.tick();
+        assert_eq!(g.snake.pos[0], (3, 9));
+    }
+
+    #[test]
+    fn eat_apple() {
+        let mut g = Game::new((10, 10));
+        g.apple.pos = (3, 5);
+        g.snake.pos = vec![(2, 5)];
+        g.tick();
+        assert_eq!(g.snake.pos.len(), 2);
+        assert_ne!(g.apple.pos, (3, 5));
+    }
+}

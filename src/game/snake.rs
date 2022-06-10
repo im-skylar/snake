@@ -61,3 +61,36 @@ impl Snake {
         self.pos.remove(0);
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::game::snake::*;
+
+    #[test]
+    fn update_pos_test() {
+        let mut s = Snake::new((10, 10));
+        s.dir = (1, 0);
+        assert_eq!(s.pos[0], (5, 5));
+
+        s.update_pos();
+
+        assert_eq!(s.pos.len(), 2);
+        assert_eq!(s.pos[0], (5, 5));
+        assert_eq!(s.pos[1], (6, 5));
+
+        s.rm_tail();
+
+        assert_eq!(s.pos.len(), 1);
+        assert_eq!(s.pos[0], (6, 5));
+    }
+
+    #[test]
+    fn update_dir_test() {
+        let mut s = Snake::new((10, 10));
+        s.dir = (1, 0);
+        s.update_dir((-1, 0));
+        assert_eq!(s.dir, (1, 0));
+        s.update_dir((0, 1));
+        assert_eq!(s.dir, (0, 1));
+    }
+}
