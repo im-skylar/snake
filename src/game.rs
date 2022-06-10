@@ -14,12 +14,12 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn new(size: (u16, u16)) -> Game {
+    pub fn new(size: (u16, u16), wrap_around: bool) -> Game {
         Game {
             snake: snake::Snake::new(size),
             apple: apple::Apple::new(&[], size),
             size,
-            wrap_around: true,
+            wrap_around,
         }
     }
 
@@ -78,7 +78,9 @@ impl Game {
 
         // Check whether snake is in itself
         if self.snake.pos[..self.snake.pos.len() - 2].contains(head) { // Safe, because the Snakes len is always > 1 here and tail is only removed later in apple check
+            self.snake.pos.pop();
             self.loose();
+            return;
         }
 
         // Check whether snake is on apple
@@ -104,6 +106,8 @@ impl Game {
 
         self.snake.draw()?;
         self.apple.draw()?;
+        
+        q_draw_at(0, self.size.1+2, format!("Score: {:3}", self.snake.pos.len()))?;
 
         q_flush()?;
 
@@ -132,31 +136,27 @@ mod tests {
 
     #[test]
     fn wrap_around() {
-        let mut g = Game::new((10, 10));
-        g.wrap_around = true;
+        let mut g = Game::new((10, 10), true);
         g.apple.pos = (0, 0);
         g.snake.pos = vec![(9, 5)];
         g.tick();
         assert_eq!(g.snake.pos[0], (0, 5));
 
-        let mut g = Game::new((10, 10));
-        g.wrap_around = true;
+        let mut g = Game::new((10, 10), true);
         g.apple.pos = (0, 0);
         g.snake.pos = vec![(0, 5)];
         g.snake.dir = (-1, 0);
         g.tick();
         assert_eq!(g.snake.pos[0], (9, 5));
 
-        let mut g = Game::new((10, 10));
-        g.wrap_around = true;
+        let mut g = Game::new((10, 10), true);
         g.apple.pos = (0, 0);
         g.snake.pos = vec![(3, 9)];
         g.snake.dir = (0, 1);
         g.tick();
         assert_eq!(g.snake.pos[0], (3, 0));
 
-        let mut g = Game::new((10, 10));
-        g.wrap_around = true;
+        let mut g = Game::new((10, 10), true);
         g.apple.pos = (0, 0);
         g.snake.pos = vec![(3, 0)];
         g.snake.dir = (0, -1);
@@ -166,7 +166,7 @@ mod tests {
 
     #[test]
     fn eat_apple() {
-        let mut g = Game::new((10, 10));
+        let mut g = Game::new((10, 10), true);
         g.apple.pos = (3, 5);
         g.snake.pos = vec![(2, 5)];
         g.tick();
