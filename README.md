@@ -23,12 +23,12 @@ cargo build
 - Wrapping around or loosing when hitting the side
 - Coloured Output
 - Highscore Display
-- Command Line options to change field size and Wall mode
+- Command Line options to change field size, amount of apples and Wall mode
+- Multiple apples mode
 
 ## Planned Features
 
 - Highscore saving
-- Multiple apples mode
 - Score display in game
 - Local Multiplayer mode
 - Online Multiplayer
