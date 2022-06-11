@@ -33,4 +33,5 @@ cargo build
 - Local Multiplayer mode
 - Online Multiplayer
 - Snake oriented Camera
+- Game Menu with options there
 

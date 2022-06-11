@@ -51,7 +51,7 @@ impl Snake {
 
     pub fn update_dir(&mut self, dir: (i16, i16)) {
         if self.dir.0 == -dir.0 || self.dir.1 == -dir.1 {
-            return ();
+            return;
         }
 
         self.dir = dir;

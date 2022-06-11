@@ -1,29 +1,75 @@
 mod apple;
 mod snake;
 
+use crate::utils::{q_clear, q_draw_at, q_flush};
 use crossterm::{self, event, ExecutableCommand};
+use rand::seq::IteratorRandom;
 use std::io;
 
-use crate::utils::{q_clear, q_draw_at, q_flush};
-
 pub struct Game {
+    /// The snake
     snake: snake::Snake,
-    apple: apple::Apple,
+
+    /// The Apples
+    apple: Vec<apple::Apple>,
+
+    /// the size of the field in x y
     size: (u16, u16),
+
+    /// Whether or not the walls should wrap around instead of making you loose
     wrap_around: bool,
+
+    /// Positions, where there is no apple (but maybe snake)
+    allowed_area: Vec<(u16, u16)>,
 }
 
 impl Game {
-    pub fn new(size: (u16, u16), wrap_around: bool) -> Game {
-        Game {
+    pub fn new(size: (u16, u16), wrap_around: bool, apples: u8) -> Game {
+        //! Create a new game object
+
+        let mut g = Game {
             snake: snake::Snake::new(size),
-            apple: apple::Apple::new(&[], size),
+            apple: vec![],
             size,
             wrap_around,
+            allowed_area: vec![],
+        };
+
+        for x in 0..g.size.0 {
+            for y in 0..g.size.1 {
+                g.allowed_area.push((x, y));
+            }
+        }
+
+        for _ in 0..apples {
+            g.add_apple();
+        }
+
+        g
+    }
+
+    fn add_apple(&mut self) {
+        //! Filter out the positions, where there is no snake from the list of
+        //! positions, where theres no apple and then create a new apple on a
+        //! random position from that filtered list
+
+        let new_pos = self
+            .allowed_area
+            .iter()
+            .filter(|x| !self.snake.pos.contains(x))
+            .choose(&mut rand::thread_rng());
+
+        if let Some(pos) = new_pos {
+            if let Some(idx) = self.allowed_area.iter().position(|x| *x == *pos) {
+                let pos = self.allowed_area.swap_remove(idx);
+                self.apple.push(apple::Apple::new(pos));
+            }
         }
     }
 
     pub fn process_input(&mut self) {
+        //! Read keyboard for wasdq and call the according function
+
         if event::poll(std::time::Duration::ZERO).unwrap() {
             if let event::Event::Key(e) = event::read().unwrap() {
                 match e {
@@ -45,10 +91,12 @@ impl Game {
     }
 
     pub fn tick(&mut self) {
+        //! Update positions of snake and checks for Walls or apples eaten
+
         self.snake.update_pos();
 
         // Check whether snake is outside of game field
-        let head = self.snake.pos.last_mut().unwrap();
+        let head = self.snake.pos.last_mut().unwrap(); // Mutable!
 
         if self.wrap_around {
             // Wrap around when hitting a wall
@@ -74,26 +122,33 @@ impl Game {
             }
         }
 
-        let head = self.snake.pos.last().unwrap();
+        let head = self.snake.pos.last().unwrap(); // Immutable!
 
         // Check whether snake is in itself
-        if self.snake.pos[..self.snake.pos.len() - 2].contains(head) { // Safe, because the Snakes len is always > 1 here and tail is only removed later in apple check
+        if self.snake.pos[..self.snake.pos.len() - 2].contains(head) {
+            // Safe, because the Snakes len is always > 1 here and tail is only removed later in apple check
             self.snake.pos.pop();
             self.loose();
             return;
         }
 
         // Check whether snake is on apple
-        if *head == self.apple.pos {
-            self.apple = apple::Apple::new(&self.snake.pos, self.size);
+        let idx = self.apple.iter().position(|x| &x.pos == head); // Get Index of Apple the Snake is on
+        if let Some(idx) = idx {
+            let apple = self.apple.remove(idx);
+            self.allowed_area.push(apple.pos);
+            self.add_apple();
         } else {
             self.snake.rm_tail();
         }
     }
 
     pub fn draw(&mut self) -> io::Result<()> {
+        //! Draw the field to the screen
+
         q_clear()?;
 
+        // Box around the field
         for x in 0..self.size.0 * 2 + 1 {
             q_draw_at(x, 0, '+')?;
             q_draw_at(x, self.size.1 + 1, '+')?;
@@ -104,17 +159,27 @@ impl Game {
             q_draw_at(self.size.0 * 2, y, '+')?;
         }
 
+        // Snake and apples
         self.snake.draw()?;
-        self.apple.draw()?;
-        
-        q_draw_at(0, self.size.1+2, format!("Score: {:3}", self.snake.pos.len()))?;
+        for a in &self.apple {
+            a.draw()?;
+        }
+
+        // Score
+        q_draw_at(
+            0,
+            self.size.1 + 2,
+            format!("Score: {:3}", self.snake.pos.len()),
+        )?;
 
         q_flush()?;
 
         Ok(())
     }
 
-    pub fn loose(&self) {
+    fn loose(&self) {
+        //! Display the score, clean up and exit
+
         q_clear().unwrap();
         q_draw_at(0, 0, ' ').unwrap();
 
@@ -129,35 +194,30 @@ impl Game {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use crate::game::*;
 
     #[test]
     fn wrap_around() {
-        let mut g = Game::new((10, 10), true);
-        g.apple.pos = (0, 0);
+        let mut g = Game::new((10, 10), true, 0);
         g.snake.pos = vec![(9, 5)];
         g.tick();
         assert_eq!(g.snake.pos[0], (0, 5));
 
-        let mut g = Game::new((10, 10), true);
-        g.apple.pos = (0, 0);
+        let mut g = Game::new((10, 10), true, 0);
         g.snake.pos = vec![(0, 5)];
         g.snake.dir = (-1, 0);
         g.tick();
         assert_eq!(g.snake.pos[0], (9, 5));
 
-        let mut g = Game::new((10, 10), true);
-        g.apple.pos = (0, 0);
+        let mut g = Game::new((10, 10), true, 0);
         g.snake.pos = vec![(3, 9)];
         g.snake.dir = (0, 1);
         g.tick();
         assert_eq!(g.snake.pos[0], (3, 0));
 
-        let mut g = Game::new((10, 10), true);
-        g.apple.pos = (0, 0);
+        let mut g = Game::new((10, 10), true, 0);
         g.snake.pos = vec![(3, 0)];
         g.snake.dir = (0, -1);
         g.tick();
@@ -166,11 +226,12 @@ mod tests {
 
     #[test]
     fn eat_apple() {
-        let mut g = Game::new((10, 10), true);
-        g.apple.pos = (3, 5);
+        let mut g = Game::new((10, 10), true, 1);
+        g.apple[0].pos = (3, 5);
         g.snake.pos = vec![(2, 5)];
         g.tick();
         assert_eq!(g.snake.pos.len(), 2);
-        assert_ne!(g.apple.pos, (3, 5));
+        assert_ne!(g.apple[0].pos, (3, 5));
+        assert_eq!(g.apple.len(), 1);
     }
 }

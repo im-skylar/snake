@@ -1,6 +1,6 @@
 use crossterm::{cursor, terminal, QueueableCommand};
-use std::io::{stdout, Write, Result};
 use std::fmt::Display;
+use std::io::{stdout, Result, Write};
 
 pub fn q_draw_at<T: Display>(x: u16, y: u16, c: T) -> Result<()> {
     stdout().queue(cursor::MoveTo(x, y))?;
@@ -17,7 +17,6 @@ pub fn q_flush() -> Result<()> {
     stdout().flush()?;
     Ok(())
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -38,7 +37,7 @@ mod tests {
 
         Ok(())
     }
-    
+
     #[test]
     fn q_flush_test() -> Result<()> {
         q_flush()?;

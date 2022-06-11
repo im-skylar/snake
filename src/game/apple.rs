@@ -1,23 +1,15 @@
 use crate::utils::q_draw_at;
 use crossterm::style::{Color, Stylize};
-use rand::Rng;
 use std::io;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Apple {
     pub pos: (u16, u16),
 }
 
 impl Apple {
-    pub fn new(keepout: &[(u16, u16)], field_size: (u16, u16)) -> Apple {
-        loop {
-            let xpos = rand::thread_rng().gen_range(0..field_size.0 as usize) as u16;
-            let ypos = rand::thread_rng().gen_range(0..field_size.1 as usize) as u16;
-
-            if !keepout.contains(&(xpos, ypos)) {
-                return Apple { pos: (xpos, ypos) };
-            }
-        }
+    pub fn new(pos: (u16, u16)) -> Apple {
+        Apple { pos }
     }
 
     pub fn draw(&self) -> io::Result<()> {
