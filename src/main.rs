@@ -1,5 +1,6 @@
 mod game;
 mod utils;
+mod highscore;
 
 use clap::Parser;
 use crossterm::{self, cursor, terminal, ExecutableCommand};

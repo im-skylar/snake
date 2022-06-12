@@ -118,6 +118,7 @@ impl Game {
         } else {
             // Loose when hitting a wall
             if head.0 >= self.size.0 || head.1 >= self.size.1 {
+                self.snake.pos.pop(); // Needed, because tail is removed later
                 self.loose();
             }
         }
@@ -182,13 +183,19 @@ impl Game {
 
         q_clear().unwrap();
         q_draw_at(0, 0, ' ').unwrap();
-
+        
+        let highscore = crate::highscore::read_highscore();
+        
         println!("You lost :(");
         q_draw_at(0, 1, ' ').unwrap();
         println!("Points: {}", self.snake.pos.len());
+        q_draw_at(0, 2, ' ').unwrap();
+        println!("Highscore: {}", highscore);
 
         crossterm::terminal::disable_raw_mode().unwrap();
         std::io::stdout().execute(crossterm::cursor::Show).unwrap();
+        
+        crate::highscore::write_highscore(self.snake.pos.len() as u32).unwrap();
 
         std::process::exit(0);
     }

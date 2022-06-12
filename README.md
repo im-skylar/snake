@@ -25,11 +25,11 @@ cargo build
 - Highscore Display
 - Command Line options to change field size, amount of apples and Wall mode
 - Multiple apples mode
+- Score display in game
+- Highscore saving
 
 ## Planned Features
 
-- Highscore saving
-- Score display in game
 - Local Multiplayer mode
 - Online Multiplayer
 - Snake oriented Camera
