@@ -1,15 +1,16 @@
 mod game;
-mod utils;
 mod highscore;
+mod utils;
 
+use bincode::{Decode, Encode};
 use clap::Parser;
 use crossterm::{self, cursor, terminal, ExecutableCommand};
 use std::thread::sleep;
 use std::time::Duration;
 
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Encode, Decode, PartialEq, Copy, Clone)]
 #[clap(version, about, long_about = None)]
-struct Args {
+pub struct Args {
     /// Wrap around instead of losing, when hitting walls
     #[clap(short = 'W', long)]
     wrap_around: bool,
@@ -35,7 +36,7 @@ fn main() {
 
     term.execute(cursor::Hide).unwrap();
 
-    let mut g = game::Game::new((args.width, args.height), args.wrap_around, args.apples);
+    let mut g = game::Game::new(args);
 
     loop {
         g.process_input();

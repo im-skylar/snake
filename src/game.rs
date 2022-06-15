@@ -21,18 +21,21 @@ pub struct Game {
 
     /// Positions, where there is no apple (but maybe snake)
     allowed_area: Vec<(u16, u16)>,
+
+    args: crate::Args, // TODO remove this, it ugly
 }
 
 impl Game {
-    pub fn new(size: (u16, u16), wrap_around: bool, apples: u8) -> Game {
+    pub fn new(args: crate::Args) -> Game {
         //! Create a new game object
 
         let mut g = Game {
-            snake: snake::Snake::new(size),
+            snake: snake::Snake::new((args.width, args.height)),
             apple: vec![],
-            size,
-            wrap_around,
+            size: (args.width, args.height),
+            wrap_around: args.wrap_around,
             allowed_area: vec![],
+            args,
         };
 
         for x in 0..g.size.0 {
@@ -41,7 +44,7 @@ impl Game {
             }
         }
 
-        for _ in 0..apples {
+        for _ in 0..args.apples {
             g.add_apple();
         }
 
@@ -183,19 +186,19 @@ impl Game {
 
         q_clear().unwrap();
         q_draw_at(0, 0, ' ').unwrap();
-        
-        let highscore = crate::highscore::read_highscore();
-        
-        println!("You lost :(");
+
+        println!("You won! :)");
         q_draw_at(0, 1, ' ').unwrap();
         println!("Points: {}", self.snake.pos.len());
+
         q_draw_at(0, 2, ' ').unwrap();
+        let highscore = crate::highscore::get_highscore(self.args);
         println!("Highscore: {}", highscore);
 
         crossterm::terminal::disable_raw_mode().unwrap();
         std::io::stdout().execute(crossterm::cursor::Show).unwrap();
-        
-        crate::highscore::write_highscore(self.snake.pos.len() as u32).unwrap();
+
+        crate::highscore::set_highscore(self.args, self.snake.pos.len() as u16);
 
         std::process::exit(0);
     }
