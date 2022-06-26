@@ -145,6 +145,11 @@ impl Game {
         } else {
             self.snake.rm_tail();
         }
+
+        // Check whether board is full
+        if self.snake.pos.len() == self.size.0 as usize * self.size.1 as  usize {
+            self.loose();
+        }
     }
 
     pub fn draw(&mut self) -> io::Result<()> {
