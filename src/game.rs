@@ -147,7 +147,7 @@ impl Game {
         }
 
         // Check whether board is full
-        if self.snake.pos.len() == self.size.0 as usize * self.size.1 as  usize {
+        if self.snake.pos.len() == self.size.0 as usize * self.size.1 as usize {
             self.loose();
         }
     }
@@ -169,9 +169,17 @@ impl Game {
         }
 
         // Snake and apples
-        self.snake.draw()?;
+        let (mut x, mut y) = *self.snake.pos.last().unwrap();
+        let (mut x, mut y) = (
+            -(x as i16) + self.size.0 as i16 / 2,
+            -(y as i16) + self.size.1 as i16 / 2,
+        );
+        if !self.args.camera_move {
+            (x, y) = (0, 0);
+        }
+        self.snake.draw((x, y), self.size)?;
         for a in &self.apple {
-            a.draw()?;
+            a.draw((x, y), self.size)?;
         }
 
         // Score
@@ -180,6 +188,26 @@ impl Game {
             self.size.1 + 2,
             format!("Score: {:3}", self.snake.pos.len()),
         )?;
+
+        // Debug
+        if self.args.debug {
+            let snakepos = self.snake.pos.last().unwrap();
+            q_draw_at(
+                0,
+                self.size.1 + 3,
+                format!(
+                    "SX: {}, SY: {}, AX: {}, AY: {}, H: {}, W: {}, TX: {}, TY: {}",
+                    snakepos.0,
+                    snakepos.1,
+                    self.apple[0].pos.0,
+                    self.apple[0].pos.1,
+                    self.size.0,
+                    self.size.1,
+                    x,
+                    y
+                ),
+            )?;
+        }
 
         q_flush()?;
 

@@ -27,11 +27,11 @@ cargo build
 - Multiple apples mode
 - Score display in game
 - Highscore saving
+- Snake oriented Camera
 
 ## Planned Features
 
 - Local Multiplayer mode
 - Online Multiplayer
-- Snake oriented Camera
 - Game Menu with options there
 

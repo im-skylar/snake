@@ -11,9 +11,17 @@ use std::time::Duration;
 #[derive(Parser, Debug, Encode, Decode, PartialEq, Copy, Clone)]
 #[clap(version, about, long_about = None)]
 pub struct Args {
+    /// Display Debug information
+    #[clap(short = 'D', long)]
+    debug: bool,
+
     /// Wrap around instead of losing, when hitting walls
     #[clap(short = 'W', long)]
     wrap_around: bool,
+
+    /// Move the camera with the snake, so the head is always in the center (implicitly turns on -W
+    #[clap(short = 'C', long)]
+    camera_move: bool,
 
     /// Height of the game field
     #[clap(short, long, default_value_t = 10)]
@@ -29,7 +37,11 @@ pub struct Args {
 }
 
 fn main() {
-    let args = Args::parse();
+    let mut args = Args::parse();
+
+    if args.camera_move {
+        args.wrap_around = true;
+    }
 
     let mut term = std::io::stdout();
     terminal::enable_raw_mode().unwrap();

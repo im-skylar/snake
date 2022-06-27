@@ -28,9 +28,8 @@ pub fn get_highscore(args: Args) -> u16 {
 fn read_and_parse() -> Result<Scores, Box<dyn std::error::Error>> {
     let f = fs::read(".snake-highscores")?;
 
-    let (scores, _): (Scores, usize) =
-        bincode::decode_from_slice(&f, bincode::config::standard())?;
-    
+    let (scores, _): (Scores, usize) = bincode::decode_from_slice(&f, bincode::config::standard())?;
+
     Ok(scores)
 }
 
@@ -56,11 +55,11 @@ pub fn set_highscore(args: Args, score: u16) {
         } else {
             scores.push(ScoreEntry {
                 settings: args,
-                score
+                score,
             });
         }
 
-        write_file(Scores( scores )).unwrap();
+        write_file(Scores(scores)).unwrap();
     } else {
         create_new_file().unwrap();
     }

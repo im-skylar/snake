@@ -16,11 +16,15 @@ impl Snake {
         Snake { pos, dir: (1, 0) }
     }
 
-    pub fn draw(&self) -> io::Result<()> {
+    pub fn draw(&self, trans: (i16, i16), size: (u16, u16)) -> io::Result<()> {
         let mut last_x: i16 = -2; // Any number < -1 works
 
         for (x, y) in &self.pos {
-            q_draw_at(*x * 2 + 1, *y + 1, '#'.on(Color::Green))?;
+            q_draw_at(
+                (*x as i16 + trans.0).rem_euclid(size.0 as i16) as u16 * 2 + 1,
+                (*y as i16 + trans.1).rem_euclid(size.1 as i16) as u16 + 1,
+                '#'.on(Color::Green),
+            )?;
 
             // This part is used to fill the gaps when the snake is
             // moving horizontally
@@ -28,9 +32,25 @@ impl Snake {
 
             if diff_x.abs() == 1 {
                 q_draw_at(
-                    *x * 2 + (1 + diff_x) as u16, // This is safe, because diff_x is never < -1 in this if block
-                    *y + 1,
+                    // This is safe, because diff_x is never < -1 in this if block
+                    ((*x as i16 + trans.0).rem_euclid(size.0 as i16) * 2 + (1 + diff_x)) as u16,
+                    (*y as i16 + trans.1).rem_euclid(size.1 as i16) as u16 + 1,
                     '#'.on(Color::Green),
+                    //'#'.on(Color::Red),
+                )?;
+            } else if last_x == size.0 as i16 - 1 && *x == 0 {
+                q_draw_at(
+                    ((*x as i16 + trans.0).rem_euclid(size.0 as i16) * 2) as u16,
+                    (*y as i16 + trans.1).rem_euclid(size.1 as i16) as u16 + 1,
+                    '#'.on(Color::Green),
+                    //'#'.on(Color::White),
+                )?;
+            } else if last_x == 0 && *x == size.0 - 1 {
+                q_draw_at(
+                    ((*x as i16 + trans.0).rem_euclid(size.0 as i16) * 2 + 2) as u16,
+                    (*y as i16 + trans.1).rem_euclid(size.1 as i16) as u16 + 1,
+                    '#'.on(Color::Green),
+                    //'#'.on(Color::Blue),
                 )?;
             }
 
